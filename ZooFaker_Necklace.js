@@ -154,7 +154,7 @@ async function getBody($ = {}) {
     const zf = new ZooFakerNecklace($.cookie, $.action);
     const log = await zf.run(riskData);
 
-    return `body=${}`;
+    return `body=${encodeURIComponent(JSON.stringify(log))}`;
 }
 
 ZooFakerNecklace.getBody = getBody;
