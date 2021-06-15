@@ -4,49 +4,49 @@ const { R_OK } = require('fs').constants;
 const vm = require('vm');
 const UA = require('./USER_AGENTS.js').USER_AGENT;
 
-const URL = 'https://wbbny.m.jd.com/babelDiy/Zeus/2s7hhSTbhMgxpGoa9JDnbDzJTaBB/index.html';
-// const REG_MODULE = /(\d+)\:function\(.*(?=smashUtils\.get_risk_result)/gm;
-const SYNTAX_MODULE = '!function(n){var r={};function o(e){if(r[e])';
-const REG_SCRIPT = /<script defer="defer" src="([^><]+\/(index\.\w+\.js))\?t=\d+">/gm;
-const REG_ENTRY = /^(.*?o\(o\.s=)(\d+)(?=\)})/;
-const DATA = {appid:'50084',sceneid:'QD216hPageh5'};
+const URL = 'https://h5.m.jd.com/babelDiy/Zeus/41Lkp7DumXYCFmPYtU3LTcnTTXTX/index.html';
+const REG_SCRIPT = /<script src="([^><]+\/(main\.\w+\.js))\?t=\d+">/gm;
+const REG_ENTRY = /^(.*?\.push\(\[)(\d+,\d+)/;
+const REG_PIN = /pt_pin=(\w+?);/m;
+const KEYWORD_MODULE = 'get_risk_result:';
+const DATA = {appid:'50082',sceneid:'DDhomePageh5'};
 let smashUtils;
 
-class ZooFaker {
-    constructor(secretp, cookie) {
-        this.secretp = secretp;
+class ZooFakerNecklace {
+    constructor(cookie, action) {
         this.cookie = cookie;
+        this.action = action;
     }
 
-    async run() {
+    async run(data) {
         if (!smashUtils) {
             await this.init();
         }
 
-        var t = Math.floor(1e6 + 9e6 * Math.random()).toString();
-        var e = smashUtils.get_risk_result({
-            id: t,
+        const t = Math.floor(1e+6 * Math.random()).toString().padEnd(6, '8');
+        const pin = this.cookie.match(REG_PIN)[1];
+        const { log } = smashUtils.get_risk_result({
+            id: this.action,
             data: {
-                random: t
+                ...data,
+                pin,
+                random: t,
             }
-        }).log;
-        var o = JSON.stringify({
-            extraData: {
-                log: encodeURIComponent(e),
-                sceneid: DATA.sceneid,
-            },
-            secretp: this.secretp,
-            random: t
-        })
+        });
+        const body = {
+            ...data,
+            random: t,
+            extraData: { log, sceneid: DATA.sceneid },
+        };
 
-        // console.log(o);
-        return o;
+        // console.log(body);
+        return body;
     }
 
     async init() {
-        console.time('ZooFaker');
+        console.time('ZooFakerNecklace');
         process.chdir(__dirname);
-        const html = await ZooFaker.httpGet(URL);
+        const html = await ZooFakerNecklace.httpGet(URL);
         const script = REG_SCRIPT.exec(html);
 
         if (script) {
@@ -62,8 +62,11 @@ class ZooFaker {
                 },
                 navigator: { userAgent: UA },
             };
-            Object.defineProperty(ctx.document, 'cookie', {
-                get: () => this.cookie,
+            const _this = this;
+            Object.defineProperty(ctx.document,'cookie',{
+                get() {
+                    return _this.cookie;
+                },
             });
 
             vm.createContext(ctx);
@@ -77,7 +80,7 @@ class ZooFaker {
 
         // console.log(html);
         // console.log(script[1],script[2]);
-        console.timeEnd('ZooFaker');
+        console.timeEnd('ZooFakerNecklace');
     }
 
     async getJSContent(cacheKey, url) {
@@ -87,15 +90,21 @@ class ZooFaker {
 
             return rawFile;
         } catch (e) {
-            let jsContent = await ZooFaker.httpGet(url);
-            const moduleIndex = jsContent.indexOf(SYNTAX_MODULE, 1);
+            let jsContent = await ZooFakerNecklace.httpGet(url);
             const findEntry = REG_ENTRY.test(jsContent);
+            const ctx = {
+                moduleIndex: 0,
+            };
+            const injectCode = `moduleIndex=arguments[0].findIndex(s=>s&&s.toString().indexOf('${KEYWORD_MODULE}')>0);return;`;
+            const injectedContent = jsContent.replace(/^(!function\(\w\){)/, `$1${injectCode}`);
 
-            if (!(moduleIndex && findEntry)) {
+            vm.createContext(ctx);
+            vm.runInContext(injectedContent, ctx);
+
+            if (!(ctx.moduleIndex && findEntry)) {
                 throw new Error('Module not found.');
             }
-            const needModuleId = jsContent.substring(moduleIndex-20, moduleIndex).match(/(\d+):function/)[1]
-            jsContent = jsContent.replace(REG_ENTRY, `$1${needModuleId}`);
+            jsContent = jsContent.replace(REG_ENTRY, `$1${ctx.moduleIndex},1`);
             // Fix device info (actually insecure, make less sense)
             jsContent = jsContent.replace(/\w+\.getDefaultArr\(7\)/, '["a","a","a","a","a","a","1"]');
             fs.writeFile(cacheKey, jsContent);
@@ -104,8 +113,8 @@ class ZooFaker {
             REG_ENTRY.lastIndex = 0;
             const entry = REG_ENTRY.exec(jsContent);
 
-            console.log(moduleIndex, needModuleId);
-            console.log(entry[1], entry[2]);
+            console.log(ctx.moduleIndex);
+            console.log(entry[2]);
         }
     }
 
@@ -128,12 +137,25 @@ class ZooFaker {
     }
 }
 
-async function getBody($) {
-    const zf = new ZooFaker($.secretp, $.cookie);
-    const ss = await zf.run();
+async function getBody($ = {}) {
+    let riskData;
+    switch ($.action) {
+        case 'startTask':
+            riskData = { taskId: $.id };
+            break;
+        case 'chargeScores':
+            riskData = { bubleId: $.id };
+            break;
+        case 'sign':
+            riskData = {};
+        default:
+            break;
+    }
+    const zf = new ZooFakerNecklace($.cookie, $.action);
+    const log = await zf.run(riskData);
 
-    return ss;
+    return `body=${encodeURIComponent(JSON.stringify(log))}`;
 }
 
-ZooFaker.getBody = getBody;
-module.exports = ZooFaker;
+ZooFakerNecklace.getBody = getBody;
+module.exports = ZooFakerNecklace;
