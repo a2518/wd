@@ -128,7 +128,7 @@ class ZooFaker {
     }
 }
 
-async function getBody($) {
+async function getBody($ = {{body:'...&uuid='}})  {
     const zf = new ZooFaker($.secretp, $.cookie);
     const ss = await zf.run();
 
