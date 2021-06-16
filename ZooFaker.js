@@ -126,14 +126,43 @@ class ZooFaker {
             req.end();
         });
     }
+    static httpPost(url, opts = {}) {
+        return new Promise((resolve, reject) => {
+            const req = https.request(url, { method: 'POST', ...opts }, (res) => {
+                res.setEncoding('utf-8');
+
+                let rawData = '';
+
+                res.on('error', reject);
+                res.on('data', chunk => rawData += chunk);
+                res.on('end', () => resolve(rawData));
+            });
+
+            req.on('error', reject);
+            req.write(opts.body);
+            req.end();
+        });
+    }
 }
 
-async function getBody($ = {{body:'...&uuid='}})  {
+async function getBody($) {
     const zf = new ZooFaker($.secretp, $.cookie);
     const ss = await zf.run();
 
     return ss;
 }
 
+async function injectCKToken(cookies = []) {
+    const resToken = await ZooFaker.httpPost('https://bh.m.jd.com/gettoken', {
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: `content={"appname":"${DATA.appid}","whwswswws":"","jdkey":"","body":{"platform":"1"}}`,
+    });
+    const { joyytoken } = JSON.parse(resToken);
+    const ckToken = `joyytoken=${DATA.appid}${joyytoken}; `;
+
+    return cookies.map(ck => ckToken + ck);
+}
+
 ZooFaker.getBody = getBody;
+ZooFaker.injectCKToken = injectCKToken;
 module.exports = ZooFaker;
