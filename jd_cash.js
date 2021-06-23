@@ -402,7 +402,7 @@ function helpFriend() {
   })
 }
 function taskUrl(functionId, body = {}) {
-    //https://api.m.jd.com/client.action?functionId=cash_mob_assist&body={"source":3,"inviteCode":"eU9YEIzvIL9XlTmXuAhW","shareDate":"IRs1bey0ZP4"}&appid=CashReward&client=m&clientVersion=9.2.8
+    //https://api.m.jd.com/client.action?functionId=cash_mob_assist&body={"source":3,"inviteCode":"JXoWE9zVGkuV4x","shareDate":"YBRR39rBMb"}&appid=CashReward&client=m&clientVersion=9.2.8
   return {
     url: `${JD_API_HOST}?functionId=${functionId}&body=${escape(JSON.stringify(body))}&appid=CashRewardMiniH5Env&appid=9.1.0`,
     headers: {
