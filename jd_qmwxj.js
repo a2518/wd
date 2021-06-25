@@ -1,7 +1,7 @@
 /*
 入口 京东 我的 全民挖现金
 运行一次查看邀请码 变量你的邀请码 
-export shareCode="FCD4A7E5CB4AF69377D77E9B4553CF6CAD1DAAB9A3E3F6CBAFDE81EEB7393333"
+export shareCode="F210F445E06C540F601C3EB02D816FB4CAD1DAAB9A3E3F6CBAFDE81EEB7393333"
 [task_local]
 0 10 * * *
 */
@@ -310,7 +310,7 @@ function helpme1() {
                 let options = {
     url: `https://api.m.jd.com`,
 
-    body: `functionId=current_activity&body={"shareCode":"FCD4A7E5CB4AF69377D77E9B4553CF6CAD1DAAB9A3E3F6CBAFDE81EEB7393333"}&client=wh5&clientVersion=1.0.0&osVersion=10&uuid=7049442d7e415232`,
+    body: `functionId=current_activity&body={"shareCode":""}&client=wh5&clientVersion=1.0.0&osVersion=10&uuid=7049442d7e415232`,
 headers: {
 "Origin": "https://h5.m.jd.com",
 "Host": "api.m.jd.com",
