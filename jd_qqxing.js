@@ -34,7 +34,7 @@ if ($.isNode()) {
 
 const JD_API_HOST = `https://api.m.jd.com/client.action`;
 message = ""
-$.shareuuid = "869ed0355ec7471ea3c945e6090467f6"
+$.shareuuid = "8cec00a4917e4af6ae49f8f4f9e7b58d"
     !(async () => {
         if (!cookiesArr[0]) {
             $.msg($.name, '【提示】请先获取cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {
@@ -111,7 +111,7 @@ $.shareuuid = "869ed0355ec7471ea3c945e6090467f6"
                 }
             }
         }
-        if (message.length != 0) {
+        if (message.length != 0&&new Date().getHours() == 11) {
         if ($.isNode()) {
            await notify.sendNotify("星系牧场", `${message}\n牧场入口：QQ星儿童牛奶京东自营旗舰店->星系牧场\n\n吹水群：https://t.me/wenmouxx`);
    }  else {
