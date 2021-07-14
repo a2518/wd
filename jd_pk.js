@@ -1,8 +1,21 @@
 /*
 京享值PK
-[task_local]
-0 10,11 * * *
+活动地址: 京东-我的-京享值-京享值pk
+活动时间：6.22-7.21
+更新时间：2021-07-14 12:00
+脚本兼容: QuantumultX, Surge,Loon, JSBox, Node.js
 
+=================================Quantumultx=========================
+[task_local]
+#京享值PK
+50 11,12 * * * https://raw.githubusercontent.com/jiulan/platypus/main/scripts/jd_pk.js, tag=京享值PK, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+=================================Loon===================================
+[Script]
+cron "50 11,12 * * *" script-path=https://raw.githubusercontent.com/jiulan/platypus/main/scripts/jd_pk.js,tag=京享值PK
+===================================Surge================================
+京享值PK = type=cron,cronexp="50 11,12 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/jiulan/platypus/main/scripts/jd_pk.js
+====================================小火箭=============================
+京享值PK = type=cron,script-path=https://raw.githubusercontent.com/jiulan/platypus/main/scripts/jd_pk.js, cronexpr="50 11,12 * * *", timeout=3600, enable=true
  */
 const $ = new Env('京享值PK');
 
@@ -34,7 +47,7 @@ if ($.isNode()) {
 }
 //低于4600分PK列表
 let txt =[
-  '5bcdf85fec891a77d81149feb9a22b89','d36ff2037c6ae1965dc003d71cf975f90f296a206a12473f57d63d95f3be0534','25fa347d005cbf2863f59ebd12b62f7b0f296a206a12473f57d63d95f3be0534','5bcdf85fec891a77d81149feb9a22b89','193fb6902c8e012cd485f0299cc3430d',	
+  '9ce5a92d4a44b228853fc691f246c04f','5bcdf85fec891a77d81149feb9a22b89','d36ff2037c6ae1965dc003d71cf975f90f296a206a12473f57d63d95f3be0534','25fa347d005cbf2863f59ebd12b62f7b0f296a206a12473f57d63d95f3be0534','5bcdf85fec891a77d81149feb9a22b89','193fb6902c8e012cd485f0299cc3430d',
 '8c21e09fb7aa09ffc2a7bc63731ffa210f296a206a12473f57d63d95f3be0534','8a34e76abe5306028e52e9519361178d','81dc09b2f3564679d6b0af63acf42d77',	'34643d40ec720147e946355720e6162d','2b7610ccd85cdfc0f656b2a301bd4e60','c19a22c622fffb444e28c7a1148120b1',	'e5644262f36bd503cc2c824b001f9eef0f296a206a12473f57d63d95f3be0534',	'47b5c287bbd5cea4af8ae959eea944560f296a206a12473f57d63d95f3be0534','ea6948d64610ea981079f13120e67e0b0f296a206a12473f57d63d95f3be0534','49dc2496020d6e7945361f3e6410fccf','8397dd56a9a156385cff286c3681a7780f296a206a12473f57d63d95f3be0534','305475d87abdfb239870481c218a82330f296a206a12473f57d63d95f3be0534','f77dac65b29fc25a57235b7a03fdfaeb0f296a206a12473f57d63d95f3be0534','4040a23fff12469222c112105fe2c50e','a5f97b4d1c639c99e6ab06e0a7acc7c30f296a206a12473f57d63d95f3be0534','1f0832f2e1a13a059a89fa50ba6699df','57aebb8471def9f9ad50520c084f4fa3',	'23a8bcf382c98d358c086597ad021c5e','7af57a52140658ebfe89ddf90378e28e0f296a206a12473f57d63d95f3be0534','5ceb92c5c4543df4d3f5243ebe30beea',	'a508bdf05e5fdbe891582b0ceb9014040f296a206a12473f57d63d95f3be0534','286432f838990a92c25c3b0557814438','50f58c95307043a44342b7ac09c866ae',	'5c47f8905ace95d0bfac8297a63a3eec','f7270ddbb3eda8997a2b202d57bb699a','b120c49f1d114ad97e2587fa742a28bc','8943c98340a7b3e420a41a295cca7dac'	,'3a599ff3ce6d21575b570fd412536aeb0f296a206a12473f57d63d95f3be0534','2baff350c4de54b8a3ab3aea8115f2dc','5d086cf9cb49534e0c4fa3bbc19129b9',	'aef007650ba4e8a35b56e88ab006fc160f296a206a12473f57d63d95f3be0534','1d6c9c6ef8803b57b939fe23de6013010f296a206a12473f57d63d95f3be0534',	'4c37a06168fb440e39ec7af52c7597c00f296a206a12473f57d63d95f3be0534','d2ecb30d4856dd102eae63cb6ce91a040f296a206a12473f57d63d95f3be0534',	'f7b0df1b5d7757578c380f6760cd348e',	'852e7a5e3928765388c123a778208990',];
 
 const JD_API_HOST = "https://api.m.jd.com/client.action";
@@ -93,21 +106,21 @@ async function main() {
         let myScore = await getScore($.pin);
         console.log("我的京享值:" + myScore);
         $.pinList = txt;
-        
+
         let winCnt = 0;
         if ($.pinList.length > 0) {
             console.log("待pk的pin list:\n" + $.pinList);
             for (let i = 0; i < $.pinList.length; i++) {
                 let pin = $.pinList[i];
-                
+
                 //bierenpin = $.pinList[Math.round(Math.random()*5)];
                 //console.log('别人的的pin：' + pin);
                 let fscore = await getScore(pin);
-                
+
                 console.log("别人的京享值:" + fscore);
-                
+
                 if (fscore < myScore) {
-                   
+
                      await sendpk(pin);
                     await launchBattleNew(pin);
                     await recvpk(pin)
@@ -124,25 +137,25 @@ async function main() {
                     // }
                 }
                 await $.wait(1000);
-             
+
             }
         }
                 $.pinList1 = await getFriendPinList();
-        
-        
+
+
         if ($.pinList1.length > 0) {
             console.log("待pk的pin list:\n" + $.pinList1);
             for (let i = 0; i < $.pinList1.length; i++) {
                 let pin1 = $.pinList1[i];
-                
+
                 //bierenpin = $.pinList[Math.round(Math.random()*5)];
                 //console.log('别人的的pin：' + pin);
                 let fscore1 = await getScore(pin1);
-                
+
                 console.log("别人的京享值:" + fscore1);
-                
+
                 if (fscore1 < myScore) {
-                   
+
                      await sendpk(pin1);
                     await launchBattleNew(pin1);
                     await recvpk(pin1)
@@ -159,7 +172,7 @@ async function main() {
                     // }
                 }
                 await $.wait(1000);
-             
+
             }
         }
 
@@ -485,7 +498,7 @@ function getScore(fpin) {
 }
 function randomStr(a) {
     console.log("查询randomStr");
-    
+
     randdomsign=getshareSign()
     return new Promise((resolve) => {
         let options = {
@@ -505,7 +518,7 @@ function randomStr(a) {
         };
 
         $.get(options, (err, resp, res) => {
-           
+
             try {
                 console.log(options);
                 if (res) {

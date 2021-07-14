@@ -1,16 +1,26 @@
-/**
- * 项目名称: 
-功能：全民抢京豆（7.2-7.15）：https://h5.m.jd.com/rn/3MQXMdRUTeat9xqBSZDSCCAE9Eqz/index.html?has_native=0
-    满160豆需要20人助力，每个用户目前只能助力2次不同的用户。
-Date: 2021/7/3 上午10:02
+/*
+全民抢京豆
+活动地址: 京东-领京豆-抢京豆  https://h5.m.jd.com/rn/8E544CDD476CD86C80C209F59E570461/index.html?has_native=0
+活动时间：7.2-7.15
+更新时间：2021-07-5 12:00
+脚本兼容: QuantumultX, Surge,Loon, JSBox, Node.js
+说明: 满160豆需要20人助力，每个用户目前只能助力2次不同的用户。
+=================================Quantumultx=========================
+[task_local]
+#全民抢京豆
+08 12 * * * https://raw.githubusercontent.com/jiulan/platypus/main/scripts/jd_qjd.js, tag=全民抢京豆, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+=================================Loon===================================
+[Script]
+cron "08 12 * * *" script-path=https://raw.githubusercontent.com/jiulan/platypus/main/scripts/jd_qjd.js,tag=全民抢京豆
+===================================Surge================================
+全民抢京豆 = type=cron,cronexp="08 12 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/jiulan/platypus/main/scripts/jd_qjd.js
+====================================小火箭=============================
+全民抢京豆 = type=cron,script-path=https://raw.githubusercontent.com/jiulan/platypus/main/scripts/jd_qjd.js, cronexpr="08 12 * * *", timeout=3600, enable=true
  */
 const $ = new Env('全民抢京豆');
-
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
-let jdNotify = true;//是否关闭通知，false打开通知推送，true关闭通知推送
-const randomCount = $.isNode() ? 20 : 5;
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '', message;
 let helpInfo = {}
@@ -23,6 +33,7 @@ if ($.isNode()) {
 } else {
   cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
 }
+$.helpStatus = true;
 const JD_API_HOST = 'https://car-member.jd.com/api/';
 !(async () => {
   if (!cookiesArr[0]) {
@@ -48,29 +59,24 @@ const JD_API_HOST = 'https://car-member.jd.com/api/';
         continue
       }
       await jdCar();
+      for (let helpItem in helpInfo) {
+        $.groupCode = helpInfo[helpItem].groupCode
+        $.shareCode = helpInfo[helpItem].shareCode
+        $.activityId = helpInfo[helpItem].activityId
+        if ($.UserName === helpItem) {
+          console.log(`${$.UserName}跳过助力自己`)
+          continue
+        }
+        if (!$.helpStatus) {
+            continue
+        }
+        await doHelp($.groupCode, $.shareCode, $.activityId)
+        await $.wait(1000)
+
+      }
     }
   }
-  console.log(helpInfo)
-  // return
-  for (let i = 0; i < cookiesArr.length; i++) {
-    if (cookiesArr[i]) {
-        cookie = cookiesArr[i];
-        $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
-        for (let helpItem in helpInfo) {
-            $.groupCode = helpInfo[helpItem].groupCode
-            $.shareCode = helpInfo[helpItem].shareCode
-            $.activityId = helpInfo[helpItem].activityId
-            if ($.UserName === helpItem) {
-                console.log(`${$.UserName}跳过助力自己`)
-                continue
-            }
-            await doHelp($.groupCode, $.shareCode, $.activityId)
-            await $.wait(1000)
-          }
-        
-    }
-  }
-  
+
 })()
   .catch((e) => {
     $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -83,12 +89,6 @@ async function jdCar() {
   await getShareCode()
 }
 
-function showMsg() {
-  return new Promise(resolve => {
-    $.msg($.name, '', `【京东账号${$.index}】${$.nickName}\n${message}`);
-    resolve()
-  })
-}
 function getRandomStr (length, exclude = -1) {
     let num = [0,1,2,3,4,5,6,7,8,9]
     if (exclude > -1) {
@@ -120,6 +120,7 @@ function getShareCode () {
             data = JSON.parse(data.replace(/jsonp_\d*_\d*\(/, '').replace(/\);?/, ''))
             let { groupCode, shareCode, sumBeanNumStr, activityMsg: { activityId }} = data.data
             helpInfo[$.UserName] = {groupCode, shareCode, sumBeanNumStr, activityId}
+            console.log(helpInfo[$.UserName])
             resolve()
         })
     })
@@ -129,7 +130,7 @@ function doHelp (groupCode, shareCode, activityId) {
     return new Promise(resolve => {
         let v_num1 = `${getRandomStr(1, 0)}${getRandomStr(4)}`
         let url = `https://api.m.jd.com/client.action?functionId=signGroupHelp&body=%7B%22activeType%22%3A2%2C%22groupCode%22%3A%22${groupCode}%22%2C%22shareCode%22%3A%22${shareCode}%22%2C%22activeId%22%3A%22${activityId}%22%2C%22source%22%3A%22guest%22%7D&appid=ld&client=apple&clientVersion=10.0.4&networkType=wifi&osVersion=13.7&uuid=&openudid=&jsonp=jsonp_${Math.floor(Math.random() * 1000)}_${v_num1}`
-        console.log(decodeURIComponent(url))
+        // console.log(decodeURIComponent(url))
     $.get({
         url,
         headers: {
@@ -144,118 +145,20 @@ function doHelp (groupCode, shareCode, activityId) {
         }
     },(err, resp, data) => {
             data = JSON.parse(data.replace(/jsonp_\d*_\d*\(/, '').replace(/\);?/, ''))
-            let { helpToast } = data.data
+        let { helpToast } = data.data
+        let { respCode } = data.data
+        if (respCode === 'SG209'){
             console.log(helpToast)
-            resolve()
+            $.helpStatus = false;
+        }else {
+            console.log(helpToast)
+        }
+
+        resolve()
         })
     })
 }
 
-function check() {
-  return new Promise(resolve => {
-    $.get(taskUrl('v1/user/exchange/bean/check'), (err, resp, data) => {
-      try {
-        if (err) {
-          data = JSON.parse(resp.body)
-          console.log(`${data.error.msg}`)
-          message += `签到失败，${data.error.msg}\n`
-        } else {
-          if (safeGet(data)) {
-            data = JSON.parse(data);
-            console.log(`兑换结果：${JSON.stringify(data)}`)
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
-    })
-  })
-}
-
-function sign() {
-  return new Promise(resolve => {
-    $.post(taskUrl('v1/user/sign'), (err, resp, data) => {
-      try {
-        if (err) {
-          data = JSON.parse(resp.body)
-          console.log(`${data.error.msg}`)
-          message += `签到失败，${data.error.msg}\n`
-        } else {
-          if (safeGet(data)) {
-            data = JSON.parse(data);
-            if (data.status) {
-              console.log(`签到成功，获得${data.data.point}，已签到${data.data.signDays}天`)
-              message += `签到成功，获得${data.data.point}，已签到${data.data.signDays}天\n`
-            }
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
-    })
-  })
-}
-
-function mission() {
-  return new Promise(resolve => {
-    $.get(taskUrl('v1/user/mission'), async (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-          console.log(`${$.name} API请求失败，请检查网路重试`)
-        } else {
-          if (safeGet(data)) {
-            data = JSON.parse(data);
-            if (data.status) {
-              let missions = data.data.missionList
-              for (let i = 0; i < missions.length; ++i) {
-                const mission = missions[i]
-                if (mission['missionStatus'] === 0 && (mission['missionType'] === 1 || mission['missionType'] === 5)) {
-                  console.log(`去做任务：${mission['missionName']}`)
-                  await doMission(mission['missionId'])
-                  await $.wait(1000) // 等待防黑
-                }
-              }
-            }
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
-    })
-  })
-}
-
-function doMission(missionId) {
-  return new Promise(resolve => {
-    $.post(taskPostUrl('v1/game/mission', {"missionId": missionId}), async (err, resp, data) => {
-      try {
-        if (err) {
-          data = JSON.parse(resp.body)
-          console.log(`${data.error.msg}`)
-        } else {
-          if (safeGet(data)) {
-            data = JSON.parse(data);
-            if (data.status) {
-              console.log("任务领取成功")
-              await receiveMission(missionId)
-            }
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
-    })
-  })
-}
 
 function receiveMission(missionId) {
   return new Promise(resolve => {
@@ -279,53 +182,6 @@ function receiveMission(missionId) {
       }
     })
   })
-}
-
-function getPoint() {
-  return new Promise(resolve => {
-    $.get(taskUrl('v1/user/point'), async (err, resp, data) => {
-      try {
-        if (err) {
-          data = JSON.parse(resp.body)
-          console.log(`${data.error.msg}`)
-        } else {
-          if (safeGet(data)) {
-            data = JSON.parse(data);
-            if (data.status) {
-              if (data.data.remainPoint >= data.data.oncePoint) {
-                console.log(`当前赛点：${data.data.remainPoint}/${data.data.oncePoint}，可以兑换京豆，请打开APP兑换`)
-                message += `当前赛点：${data.data.remainPoint}/${data.data.oncePoint}，可以兑换京豆，请打开APP兑换\n`
-              }else{
-                console.log(`当前赛点：${data.data.remainPoint}/${data.data.oncePoint}无法兑换京豆`)
-                message += `当前赛点：${data.data.remainPoint}/${data.data.oncePoint}，无法兑换京豆\n`
-              }
-            }
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
-    })
-  })
-}
-
-function taskUrl(function_id, body = {}) {
-  return {
-    url: `${JD_API_HOST}${function_id}?timestamp=${new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000 + 8 * 60 * 60 * 1000}`,
-    headers: {
-      "Accept": "*/*",
-      "Accept-Encoding": "gzip, deflate, br",
-      "Accept-Language": "zh-cn",
-      "Connection": "keep-alive",
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Host": "car-member.jd.com",
-      "Referer": "https://h5.m.jd.com/babelDiy/Zeus/44bjzCpzH9GpspWeBzYSqBA7jEtP/index.html",
-      "Cookie": cookie,
-      "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
-    }
-  }
 }
 
 function taskPostUrl(function_id, body = {}) {
