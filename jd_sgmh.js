@@ -24,6 +24,9 @@ cron "20 8 * * *" script-path=jd_sgmh.js, tag=闪购盲盒
 
  */
 const $ = new Env('闪购盲盒');
+
+console.log('\n====================Hello World====================\n')
+
 //Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 let appId = '1EFRXxg' , homeDataFunPrefix = 'interact_template', collectScoreFunPrefix = 'harmony', message = ''
@@ -309,9 +312,7 @@ function readShareCode() {
   console.log(`开始`)
   return new Promise(async resolve => {
     $.get({
-      url: `http://share.turinglabs.net/api/v3/sgmh/query/${randomCount}/`,
-      'timeout': 10000
-    }, (err, resp, data) => {
+      url: `https://api.sharecode.ga/api/sgmh/${randomCount}`, 'timeout': 3000}, (err, resp, data) => {
       try {
         if (err) {
           console.log(`${JSON.stringify(err)}`)
